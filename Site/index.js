@@ -3,23 +3,35 @@ const input = document.querySelector('input');
 
 form.addEventListener('submit', async event => {
     event.preventDefault();
+    
+    // Register service worker
     window.navigator.serviceWorker.register('./sw.js', {
         scope: __uv$config.prefix
     }).then(() => {
         let url = input.value.trim();
-        if (!isUrl(url)) url = 'https://www.google.com/search?q=' + url;
-        else if (!(url.startsWith('https://') || url.startsWith('http://'))) url = 'http://' + url;
 
+        // Check if the URL is valid
+        if (!isUrl(url)) {
+            // If not a valid URL, do a Google search
+            url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+        } else {
+            // If valid, check and prepend protocol if missing
+            if (!(url.startsWith('https://') || url.startsWith('http://'))) {
+                url = 'http://' + url; // Default to http if no protocol
+            }
+        }
 
+        // Redirect to the encoded URL using the proxy
         window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
     });
 });
 
-function isUrl(val = ''){
-    if (/^http(s?):\/\//.test(val) || val.includes('.') && val.substr(0, 1) !== ' ') return true;
-    return false;
-};
+function isUrl(val = '') {
+    // Regex to test if it's a valid URL (with protocol or domain)
+    return /^(https?:\/\/)?([a-zA-Z0-9.-]+)(\.[a-zA-Z]{2,})/.test(val);
+}
 
 function quickLink(url1) {
+    // Redirect directly to the encoded URL
     window.location.href = __uv$config.prefix + url1;
 }
